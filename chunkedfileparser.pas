@@ -204,8 +204,9 @@ function TChunkedMemory.ReplaceCurrentRawDataWithString(new_data: string): boole
 var
   old_data:string;
   new_buf:array of byte;
-  delta:integer;
+  delta, i:integer;
   cur_ofs:TChunkedOffset;
+  hdr:pTChunkHeader;
 begin
   result:=false;
   if not _loaded then exit;
@@ -223,6 +224,13 @@ begin
   Move(new_buf[0], _data[0], length(new_buf));
 
   setlength(new_buf, 0);
+
+  if length(_parent_chunks) > 0 then begin
+    for i:=0 to length(_parent_chunks) - 1 do begin
+      hdr:=@_data[_parent_chunks[i]];
+      hdr^.sz:=int64(hdr^.sz)+delta;
+    end;
+  end;
   result:=true;
 end;
 
